@@ -1,0 +1,3 @@
+Requirements:
+- python3-wxgtk4.0 package
+- tkinter is built-in

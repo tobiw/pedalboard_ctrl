@@ -1,5 +1,6 @@
 import logging
 import sys
+from functools import partial
 from menu import Menu
 from ui_tk import TkUi
 
@@ -25,6 +26,15 @@ def loop4():
     logging.info('send MIDI: toggle loop 4')
 
 
+class MidiExpanderHandler:
+    def __init__(self, ui):
+        for i in range(1, 5):
+            ui.add_item('loop{}'.format(i), 'Loop {}'.format(i), partial(self._cb_loop, i))
+
+    def _cb_loop(self, i):
+        logging.info('send MIDI: toggle loop {}'.format(i))
+
+
 def main():
     Menu.ui = TkUi(fullscreen=True, fontsize=64)
 
@@ -39,10 +49,8 @@ def main():
     main_menu.make_ui()
 
     # Create MIDI switcher sub-menu
-    # TODO: implement callbacks in separate module/class
     midi_switcher_menu.add_item('back', 'Back', lambda: midi_switcher_menu.goto(main_menu))
-    for i in range(1, 5):
-        midi_switcher_menu.add_item('loop{}'.format(i), 'Loop {}'.format(i), eval('loop{}'.format(i)))
+    midi_handler = MidiExpanderHandler(midi_switcher_menu)
 
     # Create looper sub-menu
     # TODO: implement callbacks in separate module/class

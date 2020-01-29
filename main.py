@@ -26,7 +26,7 @@ def loop4():
 
 
 def main():
-    Menu.ui = TkUi()
+    Menu.ui = TkUi(fullscreen=True, fontsize=64)
 
     main_menu = Menu('main')
     midi_switcher_menu = Menu('midi', main_menu)

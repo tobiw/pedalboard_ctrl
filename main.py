@@ -1,4 +1,5 @@
 import logging
+import subprocess
 import sys
 from functools import partial
 from menu import Menu
@@ -13,26 +14,32 @@ def quit():
     sys.exit(0)
 
 
-def loop1():
-    logging.info('send MIDI: toggle loop 1')
-
-def loop2():
-    logging.info('send MIDI: toggle loop 2')
-
-def loop3():
-    logging.info('send MIDI: toggle loop 3')
-
-def loop4():
-    logging.info('send MIDI: toggle loop 4')
-
-
 class MidiExpanderHandler:
     def __init__(self, ui):
+        self._program = 'midisend'
+        self._loop_state = [False] * 4
         for i in range(1, 5):
             ui.add_item('loop{}'.format(i), 'Loop {}'.format(i), partial(self._cb_loop, i))
 
+    def get_midi_port_index(self):
+        """Search for CH341"""
+        output = subprocess.check_output([self._program, '--list']).decode()
+        for line in output.splitlines():
+            if 'aseqdump' in line:
+                return int(line[0])
+        return -1
+
     def _cb_loop(self, i):
-        logging.info('send MIDI: toggle loop {}'.format(i))
+        cmd = [
+            self._program,  # midisend
+            str(self.get_midi_port_index()),  # port
+            '0',  # mode (0 = CC)
+            str(80 - 1 + i),  # CC number (looper expects 80-83)
+            '1' if self._loop_state[i - 1] else '0'
+        ]
+        logging.info(' '.join(cmd))
+        subprocess.call(cmd)
+        self._loop_state[i - 1] = not self._loop_state[i - 1]
 
 
 def main():

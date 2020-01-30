@@ -46,26 +46,31 @@ def main():
     Menu.ui = TkUi(fullscreen=True, fontsize=64)
 
     main_menu = Menu('main')
-    midi_switcher_menu = Menu('midi', main_menu)
-    looper_menu = Menu('looper', main_menu)
+    submenus = { name: Menu(name, main_menu) for name in ['midi', 'presets', 'looper', 'record', 'drums']}
 
     # Create main menu
     main_menu.add_item('quit', 'Quit', lambda: quit())
-    main_menu.add_item('midi', 'Midi', lambda: main_menu.goto(midi_switcher_menu))
-    main_menu.add_item('looper', 'Looper', lambda: main_menu.goto(looper_menu))
-    main_menu.make_ui()
 
     # Create MIDI switcher sub-menu
-    midi_switcher_menu.add_item('back', 'Back', lambda: midi_switcher_menu.goto(main_menu))
-    midi_handler = MidiExpanderHandler(midi_switcher_menu)
+    submenus['midi'].add_item('back', 'Back', lambda: submenus['midi'].goto(main_menu))
+    midi_handler = MidiExpanderHandler(submenus['midi'])
+
+    # Create presets sub-menu
+    submenus['presets'].add_item('prev', 'Prev', lambda: logging.info('Going to previous preset'))
+    submenus['presets'].add_item('next', 'Next', lambda: logging.info('Going to next preset'))
 
     # Create looper sub-menu
-    # TODO: implement callbacks in separate module/class
-    looper_menu.add_item('back', 'Back', lambda: looper_menu.goto(main_menu))
-    looper_menu.add_item('record', 'Record', lambda: logging.info('SL record'))
-    looper_menu.add_item('overdub', 'Overdub', lambda: logging.info('SL overdub'))
-    looper_menu.add_item('undo', 'Undo', lambda: logging.info('SL undo'))
+    submenus['looper'].add_item('record', 'Record', lambda: logging.info('SL record'))
+    submenus['looper'].add_item('overdub', 'Overdub', lambda: logging.info('SL overdub'))
+    submenus['looper'].add_item('undo', 'Undo', lambda: logging.info('SL undo'))
 
+    # Create recorder sub-menu
+    submenus['record'].add_item('record', 'Record', lambda: logging.info('Recording song ...'))
+    submenus['record'].add_item('browse', 'Browse', lambda: logging.info('Browsing songs ...'))
+
+    # Create drums sub-menu
+
+    main_menu.make_ui()
     Menu.ui.mainloop()
 
 

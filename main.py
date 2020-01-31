@@ -2,10 +2,13 @@ import logging
 import subprocess
 import sys
 from functools import partial
-from menu import Menu
-from ui_tk import TkUi
-from osc_server import OscServer
+
+from drum_sequencer import DrumSequencer
 from looper import Looper
+from menu import Menu
+from osc_server import OscServer
+from recorder import Recorder
+from ui_tk import TkUi
 
 
 logging.basicConfig(level=logging.DEBUG)  #, format='%(asctime) - %(level) - %(message)')
@@ -13,6 +16,8 @@ logging.basicConfig(level=logging.DEBUG)  #, format='%(asctime) - %(level) - %(m
 
 osc = OscServer()
 looper = Looper()
+recorder = Recorder()
+drum_sequencer = DrumSequencer()
 
 
 def quit():
@@ -53,7 +58,7 @@ class LooperHandler:
     def __init__(self, ui):
         self._program = 'sendosc'
         self._recording = False
-        for item in ['record', 'overdub', 'undo', 'redo']:
+        for item in ['record', 'overdub', 'undo', 'redo', 'mute', 'trigger', 'replace']:
             ui.add_item(item, item.capitalize(), partial(self._send_osc, item))
 
     def _send_osc(self, s):
@@ -64,6 +69,35 @@ class LooperHandler:
         if s == 'record':
             self._recording = not self._recording
             logging.info('Recording: {!s}'.format(self._recording))
+
+
+class RecordHandler:
+    def __init__(self, ui):
+        ui.add_item('record', 'Record', self.record_song)
+        ui.add_item('stop', 'Stop', self.stop_recording)
+        ui.add_item('delete', 'Delete', self.delete_last)
+
+    def record_song(self):
+        self._last_filename = recorder.filename
+        recorder.start()
+
+    def stop_recording(self):
+        recorder.stop()
+
+    def delete_last(self):
+        subprocess.call(['rm', self._last_filename])
+
+
+class DrumsHandler:
+    def __init__(self, ui):
+        ui.add_item('play', 'Play', self.play_song)
+        ui.add_item('stop', 'Stop', self.stop_song)
+
+    def play_song(self):
+        drum_sequencer.start()
+
+    def stop_song(self):
+        drum_sequencer.stop()
 
 
 def main():
@@ -88,12 +122,10 @@ def main():
     midi_handler = LooperHandler(submenus['looper'])
 
     # Create recorder sub-menu
-    submenus['record'].add_item('record', 'Record', lambda: logging.info('Recording song ...'))
-    submenus['record'].add_item('browse', 'Browse', lambda: logging.info('Browsing songs ...'))
+    record_handler = RecordHandler(submenus['record'])
 
     # Create drums sub-menu
-    submenus['drums'].add_item('play', 'Play', lambda: logging.info('Playing drum loop'))
-    submenus['drums'].add_item('select', 'Select', lambda: logging.info('Select drum loop'))
+    drums_handler = DrumsHandler(submenus['drums'])
 
     main_menu.make_ui()
     Menu.ui.mainloop()

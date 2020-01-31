@@ -14,12 +14,14 @@ class Looper:
 
     def start(self):
         self._thread.start()
-        time.sleep(1)
+        time.sleep(3)
 
         # Connect jack ports
         subprocess.call(['jack_connect', 'system:capture_1', 'sooperlooper:loop0_in_1'])
         for i in range(1, 3):
             subprocess.call(['jack_connect', 'sooperlooper:common_out_{}'.format(i), 'system:playback_{}'.format(i)])
+
+        time.sleep(3)
         subprocess.call(['aconnect', 'USBMIDI', 'sooperlooper'])
 
     def stop(self):

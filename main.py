@@ -4,6 +4,7 @@ import sys
 from functools import partial
 from menu import Menu
 from ui_tk import TkUi
+from osc_server import OscServer
 
 
 logging.basicConfig(level=logging.DEBUG)  #, format='%(asctime) - %(level) - %(message)')
@@ -61,6 +62,8 @@ class LooperHandler:
 
 def main():
     Menu.ui = TkUi(fullscreen=True, fontsize=64)
+
+    osc = OscServer()
 
     main_menu = Menu('main')
     submenus = { name: Menu(name, main_menu) for name in ['midi', 'presets', 'looper', 'record', 'drums']}

@@ -83,6 +83,8 @@ def main():
     submenus['record'].add_item('browse', 'Browse', lambda: logging.info('Browsing songs ...'))
 
     # Create drums sub-menu
+    submenus['drums'].add_item('play', 'Play', lambda: logging.info('Playing drum loop'))
+    submenus['drums'].add_item('select', 'Select', lambda: logging.info('Select drum loop'))
 
     main_menu.make_ui()
     Menu.ui.mainloop()

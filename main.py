@@ -5,13 +5,19 @@ from functools import partial
 from menu import Menu
 from ui_tk import TkUi
 from osc_server import OscServer
+from looper import Looper
 
 
 logging.basicConfig(level=logging.DEBUG)  #, format='%(asctime) - %(level) - %(message)')
 
 
+osc = OscServer()
+looper = Looper()
+
+
 def quit():
     logging.info('Exiting')
+    looper.stop()
     sys.exit(0)
 
 
@@ -51,7 +57,7 @@ class LooperHandler:
             ui.add_item(item, item.capitalize(), partial(self._send_osc, item))
 
     def _send_osc(self, s):
-        cmd = [self._program, '127.0.0.1', '5678', 'sl/0/hit', 's', s]
+        cmd = [self._program, '127.0.0.1', '9951', '/sl/0/hit', 's', s]
         logging.info(' '.join(cmd))
         subprocess.call(cmd)
 
@@ -63,7 +69,7 @@ class LooperHandler:
 def main():
     Menu.ui = TkUi(fullscreen=True, fontsize=64)
 
-    osc = OscServer()
+    looper.start()
 
     main_menu = Menu('main')
     submenus = { name: Menu(name, main_menu) for name in ['midi', 'presets', 'looper', 'record', 'drums']}

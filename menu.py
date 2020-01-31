@@ -12,7 +12,7 @@ class Menu:
 
         # Add entry into main menu and back entry in this instance
         if parent and auto_entry:
-            parent.add_item(title, title, lambda: parent.goto(self))
+            parent.add_item(title, title.capitalize(), lambda: parent.goto(self))
             self.add_item('back', 'Back', lambda: self.goto(parent))
 
     def __str__(self):
@@ -29,4 +29,4 @@ class Menu:
     def make_ui(self):
         self.ui.reset()
         for name, item in self._buttons.items():
-            self.ui.add_button(name, item[0], item[1])
+            self.ui.add_button(name, item[0], item[1], last=name == 'back')

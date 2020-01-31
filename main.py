@@ -52,7 +52,6 @@ def main():
     main_menu.add_item('quit', 'Quit', lambda: quit())
 
     # Create MIDI switcher sub-menu
-    submenus['midi'].add_item('back', 'Back', lambda: submenus['midi'].goto(main_menu))
     midi_handler = MidiExpanderHandler(submenus['midi'])
 
     # Create presets sub-menu

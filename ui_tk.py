@@ -1,3 +1,4 @@
+from functools import partial
 from tkinter import Tk, Label, Button
 
 
@@ -43,6 +44,8 @@ class TkUi(UiManager):
         self._ui = Tk()
         self._ui.title('UI')
 
+        self._button_factory = partial(Button, master=self._ui, font=('Arial', self._fontsize), fg='white', bg='black')
+
         if fullscreen:
             self._ui.overrideredirect(True)
             self._ui.geometry("{}x{}+0+0".format(self._ui.winfo_screenwidth(), self._ui.winfo_screenheight()))
@@ -50,12 +53,12 @@ class TkUi(UiManager):
     def mainloop(self):
         self._ui.mainloop()
 
-    def add_button(self, name, text, cb):
+    def add_button(self, name, text, cb, last=False):
         super().add_button(name, text, cb)
         #logging.debug('Tk: adding button at ({:d}, {:d})'.format(self._cur_col, self._cur_row - 1))
-        self._buttons[name] = Button(self._ui, text=text, command=cb,
-            font=('Arial', self._fontsize),
-            fg='white', bg='black')
-        self._buttons[name].grid(column=self._cur_col, row=self._cur_row - 1)
+        self._buttons[name] = self._button_factory(text=text, command=cb)
 
-
+        if not last:
+            self._buttons[name].grid(column=self._cur_col, row=self._cur_row - 1)
+        else:
+            self._buttons[name].grid(column=1, row=3)

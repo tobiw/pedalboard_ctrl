@@ -42,6 +42,23 @@ class MidiExpanderHandler:
         self._loop_state[i - 1] = not self._loop_state[i - 1]
 
 
+class LooperHandler:
+    def __init__(self, ui):
+        self._program = 'sendosc'
+        self._recording = False
+        for item in ['record', 'overdub', 'undo', 'redo']:
+            ui.add_item(item, item.capitalize(), partial(self._send_osc, item))
+
+    def _send_osc(self, s):
+        cmd = [self._program, '127.0.0.1', '5678', 'sl/0/hit', 's', s]
+        logging.info(' '.join(cmd))
+        subprocess.call(cmd)
+
+        if s == 'record':
+            self._recording = not self._recording
+            logging.info('Recording: {!s}'.format(self._recording))
+
+
 def main():
     Menu.ui = TkUi(fullscreen=True, fontsize=64)
 
@@ -59,9 +76,7 @@ def main():
     submenus['presets'].add_item('next', 'Next', lambda: logging.info('Going to next preset'))
 
     # Create looper sub-menu
-    submenus['looper'].add_item('record', 'Record', lambda: logging.info('SL record'))
-    submenus['looper'].add_item('overdub', 'Overdub', lambda: logging.info('SL overdub'))
-    submenus['looper'].add_item('undo', 'Undo', lambda: logging.info('SL undo'))
+    midi_handler = LooperHandler(submenus['looper'])
 
     # Create recorder sub-menu
     submenus['record'].add_item('record', 'Record', lambda: logging.info('Recording song ...'))

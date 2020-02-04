@@ -29,11 +29,12 @@ class UiManager:
         if cb is None:
             raise ValueError('cb cannot be None')
 
-        self._cur_row += 1
+        if name != 'back':
+            self._cur_row += 1
 
-        if self._cur_row > 4:
-            self._cur_col += 1
-            self._cur_row = 1
+            if self._cur_row > 4:
+                self._cur_col += 1
+                self._cur_row = 1
 
 
 class TkUi(UiManager):

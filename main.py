@@ -56,9 +56,11 @@ class MidiExpanderHandler:
 
 class LooperHandler:
     def __init__(self, ui):
+        self._ui = ui
         self._program = 'sendosc'
         self._recording = False
-        for item in ['record', 'overdub', 'undo', 'redo', 'mute', 'trigger', 'replace']:
+        ui.add_item('lbl_state', 'Loop state')
+        for item in ['record', 'overdub', 'undo', 'redo', 'mute', 'trigger']:
             ui.add_item(item, item.capitalize(), partial(self._send_osc, item))
 
     def _send_osc(self, s):
@@ -69,6 +71,7 @@ class LooperHandler:
         if s == 'record':
             self._recording = not self._recording
             logging.info('Recording: {!s}'.format(self._recording))
+            self._ui.update_item('lbl_state', '{}recording'.format('' if self._recording else 'not '))
 
 
 class RecordHandler:

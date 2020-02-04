@@ -22,8 +22,14 @@ class Looper:
             subprocess.call(['jack_connect', 'sooperlooper:common_out_{}'.format(i), 'system:playback_{}'.format(i)])
 
         time.sleep(3)
+
+        # TODO: keep attempting to connect (so that it works if plugged in later)
         subprocess.call(['aconnect', 'USBMIDI', 'sooperlooper'])
 
     def stop(self):
         subprocess.call(['killall', 'sooperlooper'])
         self._thread.join()
+
+    def state(self):
+        state = 'Playing'
+        return state

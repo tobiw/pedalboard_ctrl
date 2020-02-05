@@ -27,6 +27,11 @@ def quit():
 
 
 class MidiExpanderHandler:
+    """
+    Handle events in MIDI menu.
+
+    Uses midisend external program to send MIDI CCs.
+    """
     def __init__(self, ui):
         self._program = 'midisend'
         self._loop_state = [False] * 4
@@ -55,6 +60,11 @@ class MidiExpanderHandler:
 
 
 class LooperHandler:
+    """
+    Handle events in Looper menu.
+
+    Sends OSC commands to sooperlooper.
+    """
     def __init__(self, ui):
         self._ui = ui
         self._program = 'sendosc'
@@ -75,6 +85,11 @@ class LooperHandler:
 
 
 class RecordHandler:
+    """
+    Handle events in Record menu.
+
+    Records the input via the Recorder class.
+    """
     def __init__(self, ui):
         ui.add_item('record', 'Record', self.record_song)
         ui.add_item('stop', 'Stop', self.stop_recording)
@@ -92,6 +107,11 @@ class RecordHandler:
 
 
 class DrumsHandler:
+    """
+    Handle events in Drums menu.
+
+    Plays back drum and backing tracks.
+    """
     def __init__(self, ui):
         ui.add_item('play', 'Play', self.play_song)
         ui.add_item('stop', 'Stop', self.stop_song)

@@ -3,6 +3,7 @@ import subprocess
 import sys
 from functools import partial
 
+import utility
 from drum_sequencer import DrumSequencer
 from looper import Looper
 from menu import Menu
@@ -123,32 +124,12 @@ class DrumsHandler:
         drum_sequencer.stop()
 
 
-def check_processes(list_of_processes):
-    lines = subprocess.check_output(['ps', 'aux']).decode().splitlines()
-    procs = [l.split()[10] for l in lines]
-    return all(p in procs for p in list_of_processes)
-
-
-def check_sound_card(expected_dev):
-    output = subprocess.check_output(['aplay', '-l']).decode()
-    return expected_dev in output
-
-
-def check_midi(list_of_midi_devs):
-    lines = subprocess.check_output(['aconnect', '-i', '-o']).decode().splitlines()
-    clients = [l for l in lines if l.startswith('client')]
-    for m in list_of_midi_devs:
-        if not any(m in c for c in clients):
-            return False
-    return True
-
-
 def main():
     # System checks
-    assert check_sound_card('card 0:'), 'No ALSA device found'
+    assert utility.check_sound_card('card 0:'), 'No ALSA device found'
     # assert check_sound_card('card 1:'), 'USB DAC not found'
-    assert check_processes(['/usr/bin/jackd']), 'jackd must be running'
-    assert check_midi(['System', 'Midi Through']), 'No MIDI devices found'
+    assert utility.check_processes(['/usr/bin/jackd']), 'jackd must be running'
+    assert utility.check_midi(['System', 'Midi Through']), 'No MIDI devices found'
     # assert check_midi(['USBMIDI']), 'USB foot controller not found'
 
     Menu.ui = TkUi(fullscreen=True, fontsize=64)

@@ -1,6 +1,7 @@
 from threading import Thread
 from pythonosc import dispatcher, osc_server
 
+
 class OscServer:
     """
     Central receiver for OSC messages which can control the program itself or sooperlooper.

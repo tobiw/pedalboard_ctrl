@@ -26,7 +26,7 @@ class Menu:
 
     def goto(self, obj):
         """Reconstructs the UI with the elements from the given menu object"""
-        #logging.info('switching to {!s}'.format(obj))
+        # logging.info('switching to {!s}'.format(obj))
         obj.make_ui()
 
     def make_ui(self):

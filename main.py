@@ -11,7 +11,7 @@ from recorder import Recorder
 from ui_tk import TkUi
 
 
-logging.basicConfig(level=logging.DEBUG)  #, format='%(asctime) - %(level) - %(message)')
+logging.basicConfig(level=logging.DEBUG)  # , format='%(asctime) - %(level) - %(message)')
 
 
 osc = OscServer()
@@ -126,36 +126,36 @@ def check_midi(list_of_midi_devs):
 def main():
     # System checks
     assert check_sound_card('card 0:'), 'No ALSA device found'
-    #assert check_sound_card('card 1:'), 'USB DAC not found'
+    # assert check_sound_card('card 1:'), 'USB DAC not found'
     assert check_processes(['/usr/bin/jackd']), 'jackd must be running'
     assert check_midi(['System', 'Midi Through']), 'No MIDI devices found'
-    #assert check_midi(['USBMIDI']), 'USB foot controller not found'
+    # assert check_midi(['USBMIDI']), 'USB foot controller not found'
 
     Menu.ui = TkUi(fullscreen=True, fontsize=64)
 
     looper.start()
 
     main_menu = Menu('main')
-    submenus = { name: Menu(name, main_menu) for name in ['midi', 'presets', 'looper', 'record', 'drums']}
+    submenus = {name: Menu(name, main_menu) for name in ['midi', 'presets', 'looper', 'record', 'drums']}
 
     # Create main menu
     main_menu.add_item('quit', 'Quit', lambda: quit())
 
     # Create MIDI switcher sub-menu
-    midi_handler = MidiExpanderHandler(submenus['midi'])
+    MidiExpanderHandler(submenus['midi'])
 
     # Create presets sub-menu
     submenus['presets'].add_item('prev', 'Prev', lambda: logging.info('Going to previous preset'))
     submenus['presets'].add_item('next', 'Next', lambda: logging.info('Going to next preset'))
 
     # Create looper sub-menu
-    midi_handler = LooperHandler(submenus['looper'])
+    LooperHandler(submenus['looper'])
 
     # Create recorder sub-menu
-    record_handler = RecordHandler(submenus['record'])
+    RecordHandler(submenus['record'])
 
     # Create drums sub-menu
-    drums_handler = DrumsHandler(submenus['drums'])
+    DrumsHandler(submenus['drums'])
 
     main_menu.make_ui()
     Menu.ui.mainloop()

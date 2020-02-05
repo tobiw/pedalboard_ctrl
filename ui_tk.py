@@ -9,7 +9,7 @@ class UiManager:
         self.reset()
 
     def reset(self):
-        #logging.debug('Reseting UI')
+        # logging.debug('Reseting UI')
 
         for b in self._buttons.values():
             b.grid_forget()
@@ -71,7 +71,7 @@ class TkUi(UiManager):
 
     def add_button(self, name, text, cb, last=False):
         super().add_button(name, text, cb)
-        #logging.debug('Tk: adding button at ({:d}, {:d})'.format(self._cur_col, self._cur_row - 1))
+        # logging.debug('Tk: adding button at ({:d}, {:d})'.format(self._cur_col, self._cur_row - 1))
         self._buttons[name] = self._button_factory(text=text, command=cb)
 
         if not last:

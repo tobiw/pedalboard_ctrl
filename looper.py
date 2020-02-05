@@ -1,3 +1,4 @@
+import logging
 import subprocess
 import threading
 import time
@@ -8,6 +9,7 @@ class LooperOscServer:
     """OSC server for receiving responses and updates from sooperlooper"""
 
     def __init__(self):
+        self._log = logging.getLogger(__name__ + ':LooperOscServer')
         self._dispatcher = dispatcher.Dispatcher()
         for osc_uri in ['/quit', '/ping_response', '/get_response']:
             self._dispatcher.map(osc_uri, self._osc_cb)
@@ -20,11 +22,11 @@ class LooperOscServer:
 
     def start(self):
         self._thread.start()
-        print('LooperOscServer started on port {}'.format(self._port))
+        self._log.info('LooperOscServer started on port {}'.format(self._port))
         # TODO: register updates with sooperlooper
 
     def _osc_cb(self, *args):
-        print("LooperOscServer._osc_cb: " + str(args))
+        self._log.info("LooperOscServer._osc_cb: " + str(args))
 
     @property
     def uri(self):
@@ -62,6 +64,7 @@ class SooperlooperOscInterface:
 class Looper:
     def __init__(self):
         # Config options for sooperlooper
+        self._log = logging.getLogger(__name__ + ':Looper')
         self._sl_config = {
             'osc_port': 9951,
             'loops': 1,
@@ -87,7 +90,7 @@ class Looper:
             '--load-midi-binding={}'.format(self._sl_config['midi'])
         ]
         subprocess.call(cmd)
-        print('=== sooperlooper process has ended ===')
+        self._log.info('=== sooperlooper process has ended ===')
 
     def start(self):
         self._sl_thread.start()

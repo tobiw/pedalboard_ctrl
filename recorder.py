@@ -1,9 +1,11 @@
+import logging
 import subprocess
 import threading
 
 
 class Recorder:
     def __init__(self):
+        self._log = logging.getLogger(__name__)
         self._thread = threading.Thread(target=self._run_recorder)
         self._current_file_index = 1
 
@@ -16,7 +18,7 @@ class Recorder:
 
     def start(self):
         self._thread.start()
-        print('=== recorder thread has finished ===')
+        self._log.info('=== recorder thread has finished ===')
         self._current_file_index += 1
 
     def stop(self):

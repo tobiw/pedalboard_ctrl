@@ -1,9 +1,11 @@
+import logging
 import subprocess
 import threading
 
 
 class DrumSequencer:
     def __init__(self):
+        self._log = logging.getLogger(__name__)
         self.current_filename = '/home/pi/GnR-Paradise_City.wav'
         self.running = False
 
@@ -14,7 +16,7 @@ class DrumSequencer:
         self._thread = threading.Thread(target=self._run_player)
         self.running = True
         self._thread.start()
-        print('=== drum sequencer thread has finished ===')
+        self._log.info('drum sequencer thread has finished')
         self.running = False
 
     def stop(self):

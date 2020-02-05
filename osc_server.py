@@ -1,3 +1,4 @@
+import logging
 from threading import Thread
 from pythonosc import dispatcher, osc_server
 
@@ -10,6 +11,7 @@ class OscServer:
     - /sl/<cmd>: passed through to sooperlooper instance
     """
     def __init__(self, use_threading=True):
+        self._log = logging.getLogger(__name__)
         self._use_threading = use_threading
         self._port = 5005
         self._dispatcher = dispatcher.Dispatcher()
@@ -33,10 +35,10 @@ class OscServer:
         self._dispatcher.map(uri, func, *args)
 
     def cb_ping(self, *args):
-        print("PING " + str(list(args)))
+        self._log.info("PING " + str(list(args)))
 
     def cb_quit(self, *args):
-        print("QUIT " + str(list(args)))
+        self._log.info("QUIT " + str(list(args)))
         self.stop()
 
     def start(self):

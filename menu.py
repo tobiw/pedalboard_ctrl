@@ -1,3 +1,6 @@
+import logging
+
+
 class Menu:
     """
     A menu consists of buttons that can open other menus or
@@ -6,6 +9,7 @@ class Menu:
     ui = None
 
     def __init__(self, title, parent=None, auto_entry=True):
+        self._log = logging.getLogger(__name__)
         self._title = title
         self._parent = parent
         self._ui_items = {}  # Tk/Wx independent
@@ -26,7 +30,7 @@ class Menu:
 
     def goto(self, obj):
         """Reconstructs the UI with the elements from the given menu object"""
-        # logging.info('switching to {!s}'.format(obj))
+        self._log.info('switching to {!s}'.format(obj))
         obj.make_ui()
 
     def make_ui(self):

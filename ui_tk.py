@@ -30,13 +30,11 @@ class UiManager:
         if cb is None:
             raise ValueError('cb cannot be None')
 
-        # TODO: do not deal with special 'back' button behaviour here but in menu.py
-        if name != 'back':
-            self._cur_row += 1
+        self._cur_row += 1
 
-            if self._cur_row > 4:
-                self._cur_col += 1
-                self._cur_row = 1
+        if self._cur_row > 4:
+            self._cur_col += 1
+            self._cur_row = 1
 
     def add_label(self, name, text):
         if name in self._labels:
@@ -69,15 +67,11 @@ class TkUi(UiManager):
     def mainloop(self):
         self._ui.mainloop()
 
-    def add_button(self, name, text, cb, last=False):
+    def add_button(self, name, text, cb):
         super().add_button(name, text, cb)
         # logging.debug('Tk: adding button at ({:d}, {:d})'.format(self._cur_col, self._cur_row - 1))
         self._buttons[name] = self._button_factory(text=text, command=cb)
-
-        if not last:
-            self._buttons[name].grid(column=self._cur_col, row=self._cur_row - 1)
-        else:
-            self._buttons[name].grid(column=1, row=3)
+        self._buttons[name].grid(column=self._cur_col, row=self._cur_row - 1)
 
     def add_label(self, name, text):
         super().add_label(name, text)

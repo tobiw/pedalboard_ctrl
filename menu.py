@@ -39,4 +39,4 @@ class Menu:
             if name.startswith('lbl_'):
                 self.ui.add_label(name, item[0])
             else:
-                self.ui.add_button(name, item[0], item[1], last=name == 'back')
+                self.ui.add_button(name, item[0], item[1])

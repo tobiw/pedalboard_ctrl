@@ -27,30 +27,37 @@ def quit():
     sys.exit(0)
 
 
-class MidiExpanderHandler:
+class _MidiHandlerFunctionality:
+    def __init__(self, ui):
+        self._program = 'midisend'
+        self._port_index = self.get_midi_port_index()
+
+    def get_midi_port_index(self):
+        """Search for CH345"""
+        output = subprocess.check_output([self._program, '--list']).decode()
+        for line in output.splitlines():
+            if 'CH345' in line:
+                return int(line[0])
+        return -1
+
+
+class MidiExpanderHandler(_MidiHandlerFunctionality):
     """
     Handle events in MIDI menu.
 
     Uses midisend external program to send MIDI CCs.
     """
     def __init__(self, ui):
-        self._program = 'midisend'
+        super().__init__(ui)
+
         self._loop_state = [False] * 4
         for i in range(1, 5):
             ui.add_item('loop{}'.format(i), 'Loop {}'.format(i), partial(self._cb_loop, i))
 
-    def get_midi_port_index(self):
-        """Search for CH341"""
-        output = subprocess.check_output([self._program, '--list']).decode()
-        for line in output.splitlines():
-            if 'aseqdump' in line:
-                return int(line[0])
-        return -1
-
     def _cb_loop(self, i):
         cmd = [
             self._program,  # midisend
-            str(self.get_midi_port_index()),  # port
+            str(self._port_index),  # port
             '0',  # mode (0 = CC)
             str(80 - 1 + i),  # CC number (looper expects 80-83)
             '1' if self._loop_state[i - 1] else '0'
@@ -58,6 +65,43 @@ class MidiExpanderHandler:
         logging.info(' '.join(cmd))
         subprocess.call(cmd)
         self._loop_state[i - 1] = not self._loop_state[i - 1]
+
+
+class PresetsHandler(_MidiHandlerFunctionality):
+    """
+    Handle events in Presets menu.
+
+    Uses midisend external program to send MIDI CCs (similar to MidiExpanderHandler)
+    """
+    def __init__(self, ui):
+        super().__init__(ui)
+
+        self._current_preset = 0
+
+        ui.add_item('off', 'Off', partial(self._cb_preset, 0))
+        for i in range(1, 5):
+            ui.add_item('preset{}'.format(i), 'Preset {}'.format(i), partial(self._cb_preset, i))
+
+        self._presets = [
+            [0, 0, 0, 0],
+            [1, 0, 0, 0],
+            [1, 1, 1, 1],
+            [1, 0, 1, 0],
+            [0, 0, 1, 1],
+        ]
+
+    def _cb_preset(self, i):
+        self._current_preset = i
+        for i, loop in enumerate(self._presets[self._current_preset]):
+            cmd = [
+                self._program,  # midisend
+                str(self._port_index),  # port
+                '0',  # mode (0 = CC)
+                str(80 + i),  # CC number (looper expects 80-83)
+                str(loop)
+            ]
+            logging.info(' '.join(cmd))
+            subprocess.call(cmd)
 
 
 class LooperHandler:
@@ -124,6 +168,36 @@ class DrumsHandler:
         drum_sequencer.stop()
 
 
+class UtilitiesHandler:
+    """
+    Handle events in Utilities menu.
+
+    Various settings and utilities like setting up audio or MIDI connections.
+    """
+    def __init__(self, ui):
+        self._ui = ui
+        ui.add_item('midi-passthru', 'USBMIDI-CH345', self.midi_passthru)
+        ui.add_item('flush-midi', 'Disconnect', self.flush_midi)
+        ui.add_item('show-mapping', 'Mapping', self.show_midi_mapping)
+        self._ui.add_item('lbl_mapping', 'n/a')
+
+    def midi_passthru(self):
+        logging.debug(subprocess.check_output(['aconnect', '-i', '-o']))
+        logging.debug(subprocess.check_output(['aconnect', '-l']))
+        assert utility.check_midi(['USBMIDI', 'CH345']), 'USBMIDI or CH345 adapter missing'
+        subprocess.check_call(['aconnect', 'USBMIDI', 'CH345'])
+        logging.info('Connected USBMIDI:0 to CH345:0')
+
+    def flush_midi(self):
+        logging.debug(subprocess.check_output(['aconnect', '-l']))
+        subprocess.check_call(['aconnect', '-x'])
+
+    def show_midi_mapping(self):
+        mapping = '\n'.join(['test1', 'test2', 'test3'])
+        logging.info(mapping)
+        self._ui.update_item('lbl_mapping', mapping)
+
+
 def main():
     # System checks
     assert utility.check_sound_card('card 0:'), 'No ALSA device found'
@@ -132,12 +206,12 @@ def main():
     assert utility.check_midi(['System', 'Midi Through']), 'No MIDI devices found'
     # assert check_midi(['USBMIDI']), 'USB foot controller not found'
 
-    Menu.ui = TkUi(fullscreen=True, fontsize=64)
+    Menu.ui = TkUi(fullscreen=True, fontsize=56)
 
     looper.start()
 
     main_menu = Menu('main')
-    submenus = {name: Menu(name, main_menu) for name in ['midi', 'presets', 'looper', 'record', 'drums']}
+    submenus = {name: Menu(name, main_menu) for name in ['midi', 'presets', 'looper', 'record', 'drums', 'utilities']}
 
     # Create main menu
     main_menu.add_item('quit', 'Quit', lambda: quit())
@@ -146,8 +220,7 @@ def main():
     MidiExpanderHandler(submenus['midi'])
 
     # Create presets sub-menu
-    submenus['presets'].add_item('prev', 'Prev', lambda: logging.info('Going to previous preset'))
-    submenus['presets'].add_item('next', 'Next', lambda: logging.info('Going to next preset'))
+    PresetsHandler(submenus['presets'])
 
     # Create looper sub-menu
     LooperHandler(submenus['looper'])
@@ -157,6 +230,9 @@ def main():
 
     # Create drums sub-menu
     DrumsHandler(submenus['drums'])
+
+    # Create utilities sub-menu
+    UtilitiesHandler(submenus['utilities'])
 
     main_menu.make_ui()
     Menu.ui.mainloop()

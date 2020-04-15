@@ -202,7 +202,7 @@ def main():
     # System checks
     assert utility.check_sound_card('card 0:'), 'No ALSA device found'
     # assert check_sound_card('card 1:'), 'USB DAC not found'
-    assert utility.check_processes(['/usr/bin/jackd']), 'jackd must be running'
+    assert utility.check_processes(['jackd']), 'jackd must be running'
     assert utility.check_midi(['System', 'Midi Through']), 'No MIDI devices found'
     # assert check_midi(['USBMIDI']), 'USB foot controller not found'
 

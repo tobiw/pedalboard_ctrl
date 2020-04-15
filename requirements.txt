@@ -1,2 +1,3 @@
-flake8
-python-osc
+flake8==3.7.9
+python-osc==1.7.4
+rtmidi==2.3.4

@@ -7,7 +7,7 @@ import utility
 from drum_sequencer import DrumSequencer
 from looper import Looper
 from menu import Menu
-from midi_receiver import MidiReceiver
+from midi_receiver import MidiReceiver, MidiMapping
 from osc_server import OscServer
 from recorder import Recorder
 from ui_tk import TkUi
@@ -38,9 +38,9 @@ class MidiExpanderHandler(_MidiHandlerFunctionality):
 
         self._loop_state = [False] * 4
         for i in range(1, 5):
-            ui.add_item('loop{}'.format(i), 'Loop {}'.format(i), partial(self._cb_loop, i))
+            ui.add_item('loop{}'.format(i), 'Loop {}'.format(i), partial(self.toggle, i))
 
-    def _cb_loop(self, i):
+    def toggle(self, i):
         cmd = [
             self._program,  # midisend
             str(self._port_index),  # port
@@ -102,9 +102,9 @@ class LooperHandler:
         self._recording = False
         ui.add_item('lbl_state', 'Loop state')
         for item in ['record', 'overdub', 'undo', 'redo', 'mute', 'trigger']:
-            ui.add_item(item, item.capitalize(), partial(self._send_osc, item))
+            ui.add_item(item, item.capitalize(), partial(self.send_osc, item))
 
-    def _send_osc(self, s):
+    def send_osc(self, s):
         cmd = [self._program, '127.0.0.1', '9951', '/sl/0/hit', 's', s]
         logging.info(' '.join(cmd))
         subprocess.call(cmd)
@@ -199,11 +199,16 @@ class App:
         self.looper.stop()
         sys.exit(0)
 
-    def send_event(self, event_type, event_target, event_payload):
-        logging.debug('Event: {} {} {}'.format(event_type, event_target, event_payload))
-        if event_type == 0:  # MIDI - TODO: types
-            if event_target == 0:  # Presets - TODO: types
-                self._handlers['presets'].trigger_preset(1)
+    def send_event(self, event_target, event_payload):
+        logging.debug('Event: {} {}'.format(event_target, event_payload))
+        if event_target == MidiMapping.EVENT_TARGET_PRESET:
+            self._handlers['presets'].trigger_preset(event_payload)
+        elif event_target == MidiMapping.EVENT_TARGET_MIDI_LOOP:
+            self._handlers['midi'].toggle(event_payload)
+        elif event_target == MidiMapping.EVENT_TARGET_LOOPER:
+            self._handlers['looper'].send_osc(event_payload)
+        elif event_target == MidiMapping.EVENT_TARGET_DRUMS:
+            self._handlers['drums'].play_song()
 
     def mainloop(self):
         # System checks

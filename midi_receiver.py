@@ -2,6 +2,20 @@ import logging
 from rtmidi import RtMidiIn, RtMidiOut
 
 
+class MidiMapping:
+    EVENT_TARGET_MIDI_LOOP = 0
+    EVENT_TARGET_PRESET = 1
+    EVENT_TARGET_LOOPER = 2
+    EVENT_TARGET_RECORDER = 3
+    EVENT_TARGET_DRUMS = 4
+
+    def __init__(self, channel, cc, event_target, payload):
+        self.channel = channel
+        self.cc = cc
+        self.event_target = event_target
+        self.payload = payload
+
+
 class MidiReceiver:
     """
     Handles incoming MIDI messages from attached controllers or instruments.
@@ -43,8 +57,24 @@ class MidiReceiver:
 
         self._log.debug('Received MIDI message: {} {}'.format(ch, cc))
 
-        # TODO: map (ch, cc, value) to event
-        if ch == 2:
-            if cc == 117:
-                # event-type (0:MIDI input), target(0:presets), cc
-                self._app.send_event(0, 0, 117)
+        # Mapping (channel, cc, value) to event
+        self._mapping = [
+            MidiMapping(channel=2, cc=110, event_target=MidiMapping.EVENT_TARGET_MIDI_LOOP, payload=1),  # toggle loop 1
+            MidiMapping(channel=2, cc=111, event_target=MidiMapping.EVENT_TARGET_DRUMS, payload=1),  # play drums
+            MidiMapping(channel=2, cc=112, event_target=MidiMapping.EVENT_TARGET_LOOPER, payload='record'),  # record
+            MidiMapping(channel=2, cc=113, event_target=MidiMapping.EVENT_TARGET_LOOPER, payload='stop'),  # stop
+            MidiMapping(channel=2, cc=114, event_target=MidiMapping.EVENT_TARGET_PRESET, payload=0),  # switch loops off
+            MidiMapping(channel=2, cc=115, event_target=MidiMapping.EVENT_TARGET_PRESET, payload=1),  # switch to preset 1
+            MidiMapping(channel=2, cc=116, event_target=MidiMapping.EVENT_TARGET_PRESET, payload=2),  # switch to preset 2
+            MidiMapping(channel=2, cc=117, event_target=MidiMapping.EVENT_TARGET_PRESET, payload=3),  # switch to preset 3
+        ]
+
+        def find_mapping(ch_, cc_):
+            for m in self._mapping:
+                if m.channel == ch_ and m.cc == cc_:
+                    return m
+
+        m = find_mapping(ch, cc)
+        if m:
+            self._log.info('Sending event {}:{}'.format(m.event_target, m.payload))
+            self._app.send_event(m.event_target, m.payload)

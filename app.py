@@ -145,15 +145,19 @@ class DrumsHandler:
 
     Plays back drum and backing tracks.
     """
-    def __init__(self, ui):
-        ui.add_item('play', 'Play', self.play_song)
+    def __init__(self, ui, drum_sequencer):
         ui.add_item('stop', 'Stop', self.stop_song)
+        for i, (title, _) in enumerate(drum_sequencer.songs):
+            ui.add_item('play{}'.format(i), title, partial(self.play_song, i))
 
-    def play_song(self):
-        self.drum_sequencer.start()
+        self._drum_sequencer = drum_sequencer
+
+    def play_song(self, i):
+        self._drum_sequencer.selection = i
+        self._drum_sequencer.start()
 
     def stop_song(self):
-        self.drum_sequencer.stop()
+        self._drum_sequencer.stop()
 
 
 class UtilitiesHandler:
@@ -257,7 +261,7 @@ class App:
         self._handlers['presets'] = PresetsHandler(submenus['presets'])
         self._handlers['looper'] = LooperHandler(submenus['looper'])
         self._handlers['record'] = RecordHandler(submenus['record'])
-        self._handlers['drums'] = DrumsHandler(submenus['drums'])
+        self._handlers['drums'] = DrumsHandler(submenus['drums'], self.drum_sequencer)
         self._handlers['utilities'] = UtilitiesHandler(submenus['utilities'])
         self._handlers['system'] = SystemHandler(submenus['system'])
 

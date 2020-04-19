@@ -67,7 +67,7 @@ class PresetsHandler(_MidiHandlerFunctionality):
         ui.add_item('off', 'Off', partial(self.trigger_preset, 0))
 
         preset_names = ['----', 'DynDrv', 'DynMod', 'Drv', 'Mod', 'all']
-        for i, name in preset_names:
+        for i, name in enumerate(preset_names):
             ui.add_item('preset{}'.format(i+1), name, partial(self.trigger_preset, i+1))
 
         # Loops: Overdrive, Modulation, n/a, Dynamics
@@ -166,7 +166,8 @@ class UtilitiesHandler:
     """
     def __init__(self, ui):
         self._ui = ui
-        ui.add_item('midi-passthru', 'USBMIDI-CH345', self.midi_passthru)
+        ui.add_item('midi-passthru', 'Midi thru', self.midi_passthru)
+        ui.add_item('audio-passthru', 'Audio thru', self.audio_passthru)
         ui.add_item('flush-midi', 'Disconnect', self.flush_midi)
         ui.add_item('show-mapping', 'Mapping', self.show_midi_mapping)
         ui.add_item('lbl_mapping', 'n/a')
@@ -177,6 +178,11 @@ class UtilitiesHandler:
         assert utility.check_midi(['USBMIDI', 'CH345']), 'USBMIDI or CH345 adapter missing'
         subprocess.check_call(['aconnect', 'USBMIDI', 'CH345'])
         logging.info('Connected USBMIDI:0 to CH345:0')
+
+    def audio_passthru(self):
+        logging.debug(subprocess.check_output(['jack_lsp', '-c']))
+        subprocess.check_call(['jack_connect', 'system:capture_1', 'system:playback_1'])
+        logging.info('Connected system:capture to system:playback')
 
     def flush_midi(self):
         logging.debug(subprocess.check_output(['aconnect', '-l']))

@@ -10,6 +10,15 @@ class MidiMapping:
     EVENT_TARGET_DRUMS = 4
 
     def __init__(self, channel, cc, event_target, payload):
+        if event_target not in [
+            self.EVENT_TARGET_MIDI_LOOP,
+            self.EVENT_TARGET_DRUMS,
+            self.EVENT_TARGET_LOOPER,
+            self.EVENT_TARGET_PRESET,
+            self.EVENT_TARGET_RECORDER
+        ]:
+            raise ValueError('event_target must be one of MidiMapping.EVENT_TARGET_...')
+
         self.channel = channel
         self.cc = cc
         self.event_target = event_target

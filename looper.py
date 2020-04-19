@@ -99,12 +99,15 @@ class Looper:
         # Connect jack ports
         subprocess.call(['jack_connect', 'system:capture_1', 'sooperlooper:loop0_in_1'])
         for i in range(1, 3):
-            subprocess.call(['jack_connect', 'sooperlooper:common_out_{}'.format(i), 'system:playback_{}'.format(i)])
+            # Mono output to all available sound card outputs
+            subprocess.call(['jack_connect', 'sooperlooper:common_out_1'.format(i), 'system:playback_{}'.format(i)])
 
         time.sleep(3)
 
         # TODO: keep attempting to connect (so that it works if plugged in later)
         subprocess.call(['aconnect', 'USBMIDI', 'sooperlooper'])
+
+        self._log.info('sooperlooper successfully started')
 
     def stop(self):
         subprocess.call(['killall', 'sooperlooper'])

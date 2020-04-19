@@ -204,11 +204,12 @@ class SystemHandler:
 
 class App:
     def __init__(self):
-        self.osc = OscServer()
-        self.looper = Looper()
-        self.recorder = Recorder()
-        self.drum_sequencer = DrumSequencer()
-        self.midi_receiver = MidiReceiver('USBMIDI', self)
+        self.osc = OscServer()  # Start app OSC server
+        self.looper = Looper()  # Start sooperlooper
+        self.recorder = Recorder()  # Init audio recorder
+        self.drum_sequencer = DrumSequencer()  # Init audio/drums player
+
+        self.midi_receiver = MidiReceiver('USBMIDI', self) if utility.check_midi(['USBMIDI']) else None
 
         self._handlers = {}
 

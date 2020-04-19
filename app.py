@@ -64,20 +64,18 @@ class PresetsHandler(_MidiHandlerFunctionality):
 
         self._current_preset = 0
 
-        ui.add_item('off', 'Off', partial(self.trigger_preset, 0))
-
         preset_names = ['----', 'DynDrv', 'DynMod', 'Drv', 'Mod', 'all']
         for i, name in enumerate(preset_names):
-            ui.add_item('preset{}'.format(i+1), name, partial(self.trigger_preset, i+1))
+            ui.add_item('preset{}'.format(i), name, partial(self.trigger_preset, i))
 
         # Loops: Overdrive, Modulation, n/a, Dynamics
         self._presets = [
-            [0, 0, 0, 0],
-            [1, 0, 0, 1],
-            [0, 1, 0, 1],
-            [1, 0, 0, 0],
-            [0, 1, 0, 0],
-            [1, 1, 0, 1],
+            [0, 0, 0, 0],  # off
+            [1, 0, 0, 1],  # DynDrv
+            [0, 1, 0, 1],  # DynMod
+            [1, 0, 0, 0],  # Drv
+            [0, 1, 0, 0],  # Mod
+            [1, 1, 0, 1],  # all (loop 3 not valid at the moment)
         ]
 
     def trigger_preset(self, i):

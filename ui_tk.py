@@ -4,18 +4,20 @@ from tkinter import Tk, Label, Button
 
 class UiManager:
     def __init__(self):
-        self._buttons = {}
-        self._labels = {}
         self.reset()
 
     def reset(self):
         # logging.debug('Reseting UI')
 
-        for b in self._buttons.values():
-            b.grid_forget()
-            del b
+        try:
+            for item in list(self._buttons.values()) + list(self._labels.values()):
+                item.grid_forget()
+                del item
+        except AttributeError:  # _buttons or_labels doesn't exists yet
+            pass
 
         self._buttons = {}
+        self._labels = {}
 
         self._cur_col = 0
         self._cur_row = 0

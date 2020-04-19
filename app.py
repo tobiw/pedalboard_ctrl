@@ -165,7 +165,7 @@ class UtilitiesHandler:
         ui.add_item('midi-passthru', 'USBMIDI-CH345', self.midi_passthru)
         ui.add_item('flush-midi', 'Disconnect', self.flush_midi)
         ui.add_item('show-mapping', 'Mapping', self.show_midi_mapping)
-        self._ui.add_item('lbl_mapping', 'n/a')
+        ui.add_item('lbl_mapping', 'n/a')
 
     def midi_passthru(self):
         logging.debug(subprocess.check_output(['aconnect', '-i', '-o']))
@@ -182,6 +182,24 @@ class UtilitiesHandler:
         mapping = '\n'.join(['test1', 'test2', 'test3'])
         logging.info(mapping)
         self._ui.update_item('lbl_mapping', mapping)
+
+
+class SystemHandler:
+    """
+    Handle events in System menu.
+
+    Controlling services and the Raspberry Pi.
+    """
+    def __init__(self, ui):
+        ui.add_item('exit', 'Exit', self.exit_app)
+        ui.add_item('poweroff', 'Poweroff', self.poweroff_system)
+        self.app = None
+
+    def exit_app(self):
+        self.app.quit()
+
+    def poweroff_system(self):
+        subprocess.call(['sudo', 'poweroff'])
 
 
 class App:
@@ -223,30 +241,19 @@ class App:
         self.looper.start()
 
         main_menu = Menu('main')
-        submenus = {name: Menu(name, main_menu) for name in ['midi', 'presets', 'looper', 'record', 'drums', 'utilities']}
+        submenus = {name: Menu(name, main_menu) for name in ['midi', 'presets', 'looper', 'record', 'drums', 'utilities', 'system']}
 
         # Create main menu
-        main_menu.add_item('quit', 'Quit', self.quit)
-
-        # Create MIDI switcher sub-menu
         self._handlers['midi'] = MidiExpanderHandler(submenus['midi'])
-
-        # Create presets sub-menu
         self._handlers['presets'] = PresetsHandler(submenus['presets'])
-
-        # Create looper sub-menu
         self._handlers['looper'] = LooperHandler(submenus['looper'])
-
-        # Create recorder sub-menu
         self._handlers['record'] = RecordHandler(submenus['record'])
-        self._handlers['record'].recorder = self.recorder
-
-        # Create drums sub-menu
         self._handlers['drums'] = DrumsHandler(submenus['drums'])
-        self._handlers['record'].recorder = self.recorder
-
-        # Create utilities sub-menu
         self._handlers['utilities'] = UtilitiesHandler(submenus['utilities'])
+        self._handlers['system'] = SystemHandler(submenus['system'])
+
+        self._handlers['record'].recorder = self.recorder
+        self._handlers['system'].app = self
 
         main_menu.make_ui()
         Menu.ui.mainloop()

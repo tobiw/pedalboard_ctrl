@@ -68,14 +68,17 @@ class MidiReceiver:
 
         # Mapping (channel, cc, value) to event
         self._mapping = [
-            MidiMapping(channel=2, cc=110, event_target=MidiMapping.EVENT_TARGET_MIDI_LOOP, payload=1),  # toggle loop 1
-            MidiMapping(channel=2, cc=111, event_target=MidiMapping.EVENT_TARGET_DRUMS, payload=1),  # play drums
-            MidiMapping(channel=2, cc=112, event_target=MidiMapping.EVENT_TARGET_LOOPER, payload='record'),  # record
-            MidiMapping(channel=2, cc=113, event_target=MidiMapping.EVENT_TARGET_LOOPER, payload='stop'),  # stop
-            MidiMapping(channel=2, cc=114, event_target=MidiMapping.EVENT_TARGET_PRESET, payload=0),  # switch loops off
-            MidiMapping(channel=2, cc=115, event_target=MidiMapping.EVENT_TARGET_PRESET, payload=1),  # switch to preset 1
-            MidiMapping(channel=2, cc=116, event_target=MidiMapping.EVENT_TARGET_PRESET, payload=2),  # switch to preset 2
-            MidiMapping(channel=2, cc=117, event_target=MidiMapping.EVENT_TARGET_PRESET, payload=3),  # switch to preset 3
+            # single click
+            MidiMapping(channel=2, cc=10, event_target=MidiMapping.EVENT_TARGET_MIDI_LOOP, payload=1),  # toggle loop 1
+            # MidiMapping(channel=2, cc=11, event_target=MidiMapping.EVENT_TARGET_DRUMS, payload=1),  # play drums
+            # MidiMapping(channel=2, cc=12, event_target=MidiMapping.EVENT_TARGET_LOOPER, payload='record'),  # record
+            # MidiMapping(channel=2, cc=13, event_target=MidiMapping.EVENT_TARGET_LOOPER, payload='stop'),  # stop
+            MidiMapping(channel=2, cc=14, event_target=MidiMapping.EVENT_TARGET_PRESET, payload=0),  # switch loops off
+            MidiMapping(channel=2, cc=15, event_target=MidiMapping.EVENT_TARGET_PRESET, payload=1),  # switch to preset 1
+            MidiMapping(channel=2, cc=16, event_target=MidiMapping.EVENT_TARGET_PRESET, payload=2),  # switch to preset 2
+            MidiMapping(channel=2, cc=17, event_target=MidiMapping.EVENT_TARGET_PRESET, payload=3),  # switch to preset 3
+
+            # long click
         ]
 
         def find_mapping(ch_, cc_):

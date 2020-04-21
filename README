@@ -1,3 +1,4 @@
 Requirements:
 - python3-wxgtk4.0 package
-- tkinter is built-in
+- tkinter is built-in, or required with apt install python3-tk
+- if pip install of requirements fails: pip install wheel

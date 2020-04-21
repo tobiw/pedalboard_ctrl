@@ -17,7 +17,10 @@ from ui_tk import TkUi
 class _MidiHandlerFunctionality:
     def __init__(self, ui):
         self._program = 'midisend'
-        self._port_index = self.get_midi_port_index()
+        try:
+            self._port_index = self.get_midi_port_index()
+        except FileNotFoundError:
+            self._port_index = None
 
     def get_midi_port_index(self):
         """Search for CH345"""
@@ -229,7 +232,7 @@ class App:
 
     def quit(self):
         logging.info('Exiting')
-        self.looper.stop()
+        # self.looper.stop()
         sys.exit(0)
 
     def send_event(self, event_target, event_payload):
@@ -247,14 +250,14 @@ class App:
         # System checks
         assert utility.check_sound_card('card 0:'), 'No ALSA device found'
         # assert check_sound_card('card 1:'), 'USB DAC not found'
-        assert utility.check_processes(['jackd']), 'jackd must be running'
+        # assert utility.check_processes(['jackd']), 'jackd must be running'
         assert utility.check_midi(['System', 'Midi Through']), 'No MIDI devices found'
         # assert check_midi(['USBMIDI']), 'USB foot controller not found'
 
-        Menu.ui = TkUi(fullscreen=True, fontsize=56)
+        Menu.ui = TkUi(fullscreen=False, fontsize=56)
 
-        self.looper.start()
         self.ipc.start()
+        # self.looper.start()
 
         main_menu = Menu('main')
         submenus = {name: Menu(name, main_menu) for name in ['midi', 'presets', 'looper', 'record', 'drums', 'utilities', 'system']}

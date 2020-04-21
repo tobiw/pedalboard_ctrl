@@ -34,6 +34,7 @@ class LooperOscServer:
 
 
 class SooperlooperOscInterface:
+    """OSC client to communicate with sooperlooper"""
     def __init__(self, port):
         self._osc_client = udp_client.SimpleUDPClient('127.0.0.1', port)
 
@@ -91,6 +92,16 @@ class Looper:
         ]
         subprocess.call(cmd)
         self._log.info('=== sooperlooper process has ended ===')
+
+    @property
+    def is_running(self):
+        try:
+            output = subprocess.check_output(['pgrep', 'sooperlooper'])
+        except subprocess.CalledProcessError:
+            # pgrep returned rc != 0 which means no process was found
+            return False
+        else:
+            return output != ''
 
     def start(self):
         self._sl_thread.start()

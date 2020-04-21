@@ -8,17 +8,26 @@ from functools import partial
 class _MidiHandlerFunctionality:
     def __init__(self, ui):
         self._program = 'midisend'
+        self._program_exists = self._check_program()
         try:
             self._port_index = self.get_midi_port_index()
         except FileNotFoundError:
             self._port_index = None
 
+    def _check_program(self):
+        try:
+            subprocess.check_output(['which', self._program])
+        except subprocess.CalledProcessError:
+            return False
+        return True
+
     def get_midi_port_index(self):
         """Search for CH345"""
-        output = subprocess.check_output([self._program, '--list']).decode()
-        for line in output.splitlines():
-            if 'CH345' in line:
-                return int(line[0])
+        if self._program_exists:
+            output = subprocess.check_output([self._program, '--list']).decode()
+            for line in output.splitlines():
+                if 'CH345' in line:
+                    return int(line[0])
         return -1
 
 
@@ -37,6 +46,12 @@ class MidiExpanderHandler(_MidiHandlerFunctionality):
             ui.add_item('loop{}'.format(i), 'Loop {}'.format(i), partial(self.toggle, i))
 
     def toggle(self, i):
+        self._loop_state[i - 1] = not self._loop_state[i - 1]
+
+        if not self._program_exists:
+            self._log.warn('Skipping call to ' + self._program)
+            return
+
         cmd = [
             self._program,  # midisend
             str(self._port_index),  # port
@@ -44,9 +59,8 @@ class MidiExpanderHandler(_MidiHandlerFunctionality):
             str(80 - 1 + i),  # CC number (looper expects 80-83)
             '1' if self._loop_state[i - 1] else '0'
         ]
-        self._log.info(' '.join(cmd))
+        self._log.debug(' '.join(cmd))
         subprocess.call(cmd)
-        self._loop_state[i - 1] = not self._loop_state[i - 1]
 
 
 class PresetsHandler(_MidiHandlerFunctionality):
@@ -77,6 +91,11 @@ class PresetsHandler(_MidiHandlerFunctionality):
 
     def trigger_preset(self, i):
         self._current_preset = i
+
+        if not self._program_exists:
+            self._log.warn('Skipping call to ' + self._program)
+            return
+
         for i, loop in enumerate(self._presets[self._current_preset]):
             cmd = [
                 self._program,  # midisend
@@ -85,7 +104,7 @@ class PresetsHandler(_MidiHandlerFunctionality):
                 str(80 + i),  # CC number (looper expects 80-83)
                 str(loop)
             ]
-            self._log.info(' '.join(cmd))
+            self._log.debug(' '.join(cmd))
             subprocess.call(cmd)
 
 
@@ -106,7 +125,7 @@ class LooperHandler:
 
     def send_osc(self, s):
         cmd = [self._program, '127.0.0.1', '9951', '/sl/0/hit', 's', s]
-        self._log.info(' '.join(cmd))
+        self._log.debug(' '.join(cmd))
         subprocess.call(cmd)
 
         if s == 'record':

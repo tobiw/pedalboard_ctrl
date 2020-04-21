@@ -7,7 +7,7 @@ import threading
 class DrumSequencer:
     def __init__(self):
         self._log = logging.getLogger(__name__)
-        self._path = '/home/pi'
+        self._path = 'songs'
         self.songs = [('Kick', 'kick-180bpm.wav'), ('GnR', 'GnR-Paradise_City.wav'), ('FF', 'FF-Pretender.wav')]
         self.selection = 0
         self.running = False

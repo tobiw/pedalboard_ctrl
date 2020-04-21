@@ -71,7 +71,7 @@ class Looper:
             'loops': 1,
             'channels': 1,
             'looptime': 60,
-            'midi': '/home/pi/sl_midi.slb'
+            'midi': 'sl_midi.slb'
         }
 
         # Thread to run sooperlooper in the background

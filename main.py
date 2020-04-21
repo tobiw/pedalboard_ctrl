@@ -6,4 +6,4 @@ logging.basicConfig(level=logging.DEBUG)  # , format='%(asctime) - %(level) - %(
 
 
 if __name__ == '__main__':
-    App().mainloop()
+    App().main()

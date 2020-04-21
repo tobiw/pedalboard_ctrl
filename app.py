@@ -5,6 +5,7 @@ from functools import partial
 
 import utility
 from drum_sequencer import DrumSequencer
+from ipc import IpcServer
 from looper import Looper
 from menu import Menu
 from midi_receiver import MidiReceiver, MidiMapping
@@ -216,6 +217,7 @@ class SystemHandler:
 
 class App:
     def __init__(self):
+        self.ipc = IpcServer()  # Start IPC to webserver (server-side)
         self.osc = OscServer()  # Start app OSC server
         self.looper = Looper()  # Start sooperlooper
         self.recorder = Recorder()  # Init audio recorder
@@ -241,7 +243,7 @@ class App:
         elif event_target == MidiMapping.EVENT_TARGET_DRUMS:
             self._handlers['drums'].play_song()
 
-    def mainloop(self):
+    def main(self):
         # System checks
         assert utility.check_sound_card('card 0:'), 'No ALSA device found'
         # assert check_sound_card('card 1:'), 'USB DAC not found'
@@ -252,6 +254,7 @@ class App:
         Menu.ui = TkUi(fullscreen=True, fontsize=56)
 
         self.looper.start()
+        self.ipc.start()
 
         main_menu = Menu('main')
         submenus = {name: Menu(name, main_menu) for name in ['midi', 'presets', 'looper', 'record', 'drums', 'utilities', 'system']}

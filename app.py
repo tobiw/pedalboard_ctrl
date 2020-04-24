@@ -66,7 +66,7 @@ class App:
         assert utility.check_midi(['System', 'Midi Through']), 'No MIDI devices found'
         # assert check_midi(['USBMIDI']), 'USB foot controller not found'
 
-        Menu.ui = TkUi(fullscreen=False, fontsize=56)
+        Menu.ui = TkUi(fullscreen=True, fontsize=56)
 
         self.ipc.start()
 

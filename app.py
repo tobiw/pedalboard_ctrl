@@ -7,7 +7,7 @@ from drum_sequencer import DrumSequencer
 from ipc import IpcServer
 from looper import Looper
 from menu import Menu
-from menu_handlers import MidiExpanderHandler, PresetsHandler, LooperHandler, RecordHandler, DrumsHandler, UtilitiesHandler, SystemHandler
+from menu_handlers import BaseMenuHandler, MidiExpanderHandler, PresetsHandler, LooperHandler, RecordHandler, DrumsHandler, UtilitiesHandler, SystemHandler
 from midi_receiver import MidiReceiver, MidiMapping
 from osc_server import OscServer
 from recorder import Recorder

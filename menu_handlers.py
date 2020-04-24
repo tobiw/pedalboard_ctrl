@@ -13,10 +13,16 @@ class _MidiHandlerFunctionality(BaseMenuHandler):
     def __init__(self, ui):
         self._program = 'midisend'
         self._program_exists = self._check_program()
+
         try:
-            self._port_index = self.get_midi_port_index()
+            self._loop_port_index = self.get_midi_port_index('CH345')
         except FileNotFoundError:
-            self._port_index = None
+            self._loop_port_index = None
+
+        try:
+            self._ctrl_port_index = self.get_midi_port_index('USBMIDI')
+        except FileNotFoundError:
+            self._ctrl_port_index = None
 
     def _check_program(self):
         try:
@@ -25,14 +31,25 @@ class _MidiHandlerFunctionality(BaseMenuHandler):
             return False
         return True
 
-    def get_midi_port_index(self):
-        """Search for CH345"""
+    def get_midi_port_index(self, name):
+        """Search for MIDI device"""
         if self._program_exists:
             output = subprocess.check_output([self._program, '--list']).decode()
             for line in output.splitlines():
-                if 'CH345' in line:
+                if name in line:
                     return int(line[0])
         return -1
+
+    def _send_cc(self, device_index, cc, value):
+        cmd = [
+            self._program,  # midisend
+            str(device_index),  # MIDI port index
+            '0',  # CC
+            str(cc),  # CC#
+            str(value)
+        ]
+        self._log.debug(' '.join(cmd))
+        subprocess.call(cmd)
 
 
 class MidiExpanderHandler(_MidiHandlerFunctionality):
@@ -56,15 +73,8 @@ class MidiExpanderHandler(_MidiHandlerFunctionality):
             self._log.warn('Skipping call to ' + self._program)
             return
 
-        cmd = [
-            self._program,  # midisend
-            str(self._port_index),  # port
-            '0',  # mode (0 = CC)
-            str(80 - 1 + i),  # CC number (looper expects 80-83)
-            '1' if self._loop_state[i - 1] else '0'
-        ]
-        self._log.debug(' '.join(cmd))
-        subprocess.call(cmd)
+        self._send_cc(self._loop_port_index, 80 - 1 + i, int(self._loop_state[i - 1]))
+        self._send_cc(self._ctrl_port_index, i, int(self._loop_state[i - 1]))
 
 
 class PresetsHandler(_MidiHandlerFunctionality):
@@ -100,16 +110,12 @@ class PresetsHandler(_MidiHandlerFunctionality):
             self._log.warn('Skipping call to ' + self._program)
             return
 
-        for i, loop in enumerate(self._presets[self._current_preset]):
-            cmd = [
-                self._program,  # midisend
-                str(self._port_index),  # port
-                '0',  # mode (0 = CC)
-                str(80 + i),  # CC number (looper expects 80-83)
-                str(loop)
-            ]
-            self._log.debug(' '.join(cmd))
-            subprocess.call(cmd)
+        for loop_i, loop in enumerate(self._presets[self._current_preset]):
+            self._send_cc(self._loop_port_index, 80 + loop_i, loop)
+
+        for clear_i in range(4):
+            self._send_cc(self._ctrl_port_index, 4 + clear_i, 0)
+        self._send_cc(self._ctrl_port_index, 4 + i, 1)
 
 
 class LooperHandler(BaseMenuHandler):

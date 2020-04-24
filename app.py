@@ -77,6 +77,7 @@ class App:
         submenus = {name: Menu(name, main_menu) for name in ['midi', 'presets', 'looper', 'record', 'drums', 'utilities', 'system']}
 
         # Create main menu
+        BaseMenuHandler.app = self
         self._handlers['midi'] = MidiExpanderHandler(submenus['midi'])
         self._handlers['presets'] = PresetsHandler(submenus['presets'])
         self._handlers['looper'] = LooperHandler(submenus['looper'])
@@ -86,7 +87,6 @@ class App:
         self._handlers['system'] = SystemHandler(submenus['system'])
 
         self._handlers['record'].recorder = self.recorder
-        self._handlers['system'].app = self
 
         main_menu.make_ui()
         Menu.ui.mainloop()

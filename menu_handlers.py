@@ -5,7 +5,11 @@ import utility
 from functools import partial
 
 
-class _MidiHandlerFunctionality:
+class BaseMenuHandler:
+    app = None
+
+
+class _MidiHandlerFunctionality(BaseMenuHandler):
     def __init__(self, ui):
         self._program = 'midisend'
         self._program_exists = self._check_program()
@@ -108,7 +112,7 @@ class PresetsHandler(_MidiHandlerFunctionality):
             subprocess.call(cmd)
 
 
-class LooperHandler:
+class LooperHandler(BaseMenuHandler):
     """
     Handle events in Looper menu.
 
@@ -134,7 +138,7 @@ class LooperHandler:
             self._ui.update_item('lbl_state', '{}recording'.format('' if self._recording else 'not '))
 
 
-class RecordHandler:
+class RecordHandler(BaseMenuHandler):
     """
     Handle events in Record menu.
 
@@ -156,7 +160,7 @@ class RecordHandler:
         subprocess.call(['rm', self._last_filename])
 
 
-class DrumsHandler:
+class DrumsHandler(BaseMenuHandler):
     """
     Handle events in Drums menu.
 
@@ -177,7 +181,7 @@ class DrumsHandler:
         self._drum_sequencer.stop()
 
 
-class UtilitiesHandler:
+class UtilitiesHandler(BaseMenuHandler):
     """
     Handle events in Utilities menu.
 
@@ -198,6 +202,8 @@ class UtilitiesHandler:
         assert utility.check_midi(['USBMIDI', 'CH345']), 'USBMIDI or CH345 adapter missing'
         subprocess.check_call(['aconnect', 'USBMIDI', 'CH345'])
         self._log.info('Connected USBMIDI:0 to CH345:0')
+        self.app.midi_receiver.enable = False  # disable while passthru is active
+        self._log.info('MidiReceiver disabled')
 
     def audio_passthru(self):
         self._log.debug(subprocess.check_output(['jack_lsp', '-c']))
@@ -214,7 +220,7 @@ class UtilitiesHandler:
         self._ui.update_item('lbl_mapping', mapping)
 
 
-class SystemHandler:
+class SystemHandler(BaseMenuHandler):
     """
     Handle events in System menu.
 
@@ -223,7 +229,6 @@ class SystemHandler:
     def __init__(self, ui):
         ui.add_item('exit', 'Exit', self.exit_app)
         ui.add_item('poweroff', 'Poweroff', self.poweroff_system)
-        self.app = None
 
     def exit_app(self):
         self.app.quit()

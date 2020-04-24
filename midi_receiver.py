@@ -38,6 +38,7 @@ class MidiReceiver:
         self._connect_midi(usb_device_name)
         self._midi_in.setCallback(self._midi_message_cb)
         self._app = app
+        self.enabled = True
 
     def _connect_midi(self, usb_device_name):
         def find_port(ports, name):
@@ -61,6 +62,9 @@ class MidiReceiver:
         self._midi_out.openPort(port)
 
     def _midi_message_cb(self, msg):
+        if not self.enabled:
+            return
+
         ch = msg.getChannel()
         cc = msg.getControllerNumber()
 

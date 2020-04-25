@@ -1,4 +1,5 @@
 import logging
+import rtmidi
 import subprocess
 import utility
 
@@ -11,45 +12,25 @@ class BaseMenuHandler:
 
 class _MidiHandlerFunctionality(BaseMenuHandler):
     def __init__(self, ui):
-        self._program = 'midisend'
-        self._program_exists = self._check_program()
+        self._midi = {name: rtmidi.RtMidiOut() for name in ['looper', 'ctrl']}
+        loop_port_index = self.get_midi_port_index(self._midi['looper'], 'CH345')
+        ctrl_port_index = self.get_midi_port_index(self._midi['ctrl'], 'USBMIDI')
+        self._midi['looper'].openPort(loop_port_index)
+        self._midi['ctrl'].openPort(ctrl_port_index)
+        assert self._midi['looper'].isPortOpen()
+        assert self._midi['ctrl'].isPortOpen()
 
-        try:
-            self._loop_port_index = self.get_midi_port_index('CH345')
-        except FileNotFoundError:
-            self._loop_port_index = None
-
-        try:
-            self._ctrl_port_index = self.get_midi_port_index('USBMIDI')
-        except FileNotFoundError:
-            self._ctrl_port_index = None
-
-    def _check_program(self):
-        try:
-            subprocess.check_output(['which', self._program])
-        except subprocess.CalledProcessError:
-            return False
-        return True
-
-    def get_midi_port_index(self, name):
+    def get_midi_port_index(self, midi_port, name):
         """Search for MIDI device"""
-        if self._program_exists:
-            output = subprocess.check_output([self._program, '--list']).decode()
-            for line in output.splitlines():
-                if name in line:
-                    return int(line[0])
+        for i, port_name in enumerate([midi_port.getPortName(i) for i in range(midi_port.getPortCount())]):
+            if name in port_name:
+                return i
         return -1
 
-    def _send_cc(self, device_index, cc, value):
-        cmd = [
-            self._program,  # midisend
-            str(device_index),  # MIDI port index
-            '0',  # CC
-            str(cc),  # CC#
-            str(value)
-        ]
-        self._log.debug(' '.join(cmd))
-        subprocess.call(cmd)
+    def _send_cc(self, port_name, cc, value):
+        self._log.debug('Sending CC ({}, {}, {}) to {}'.format(1, cc, value, port_name))
+        msg = rtmidi.MidiMessage().controllerEvent(1, cc, value)
+        self._midi[port_name].sendMessage(msg)
 
 
 class MidiExpanderHandler(_MidiHandlerFunctionality):
@@ -68,13 +49,8 @@ class MidiExpanderHandler(_MidiHandlerFunctionality):
 
     def toggle(self, i):
         self._loop_state[i - 1] = not self._loop_state[i - 1]
-
-        if not self._program_exists:
-            self._log.warn('Skipping call to ' + self._program)
-            return
-
-        self._send_cc(self._loop_port_index, 80 - 1 + i, int(self._loop_state[i - 1]))
-        self._send_cc(self._ctrl_port_index, i, int(self._loop_state[i - 1]))
+        self._send_cc('looper', 80 - 1 + i, int(self._loop_state[i - 1]))
+        self._send_cc('ctrl', i, int(self._loop_state[i - 1]))
 
 
 class PresetsHandler(_MidiHandlerFunctionality):
@@ -106,16 +82,12 @@ class PresetsHandler(_MidiHandlerFunctionality):
     def trigger_preset(self, i):
         self._current_preset = i
 
-        if not self._program_exists:
-            self._log.warn('Skipping call to ' + self._program)
-            return
-
         for loop_i, loop in enumerate(self._presets[self._current_preset]):
-            self._send_cc(self._loop_port_index, 80 + loop_i, loop)
+            self._send_cc('looper', 80 + loop_i, loop)
 
         for clear_i in range(4):
-            self._send_cc(self._ctrl_port_index, 4 + clear_i, 0)
-        self._send_cc(self._ctrl_port_index, 4 + i, 1)
+            self._send_cc('ctrl', 5 + clear_i, 0)
+        self._send_cc('ctrl', 5 + self._current_preset, 1)
 
 
 class LooperHandler(BaseMenuHandler):
